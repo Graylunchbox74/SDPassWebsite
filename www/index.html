@@ -7,8 +7,18 @@
 		<link rel="stylesheet" type="text/css" href="lib/css/bootstrap.min.css" />
 		<link href="lib/css/carousel.css" rel="stylesheet">
 	</head>
+	<style>
+		.dropdown-submenu {
+			position: relative;
+		}
+		
+		.dropdown-submenu .dropdown-menu {
+			top: 0;
+			left: 100%;
+			margin-top: -1px;
+		}
+		</style>
 	<body>
-		Hello World
 		<header>
 			<nav class="navbar navbar-expand-md navbar-light fixed-top bg-light">
 			  <a class="navbar-brand" href="#">SDPass</a>
@@ -18,25 +28,43 @@
 			  </button>
 			  <div class="collapse navbar-collapse" id="navbarCollapse">
 				<ul class="navbar-nav mr-auto">
-				  <li class="nav-item active">
-					<a class="nav-link" href="#">Home
-					  <span class="sr-only">(current)</span>
-					</a>
-				  </li>
+
+				  <div class="dropdown">
+					<li class="nav-item dropdown-toggle" data-toggle="dropdown" data-target="programsDropdown">Programs</button>
+					<ul id="programsDropdown" class="dropdown-menu">
+					  <li class="dropdown-submenu">
+						<button class="btn navbar-btn dropdown-toggle" data-toggle="dropdown" data-target="internshipsDropdown">Internships</button>
+						<ul id="internshipsDropdown" class="dropdown-menu">
+							<li class="dropdown-submenu">
+								<a class="nav-link" href="#">Computer Science</a>
+							</li>
+							<li class="dropdown-submenu">
+								<a class="nav-link" href="#">Cyber Security</a>
+							</li>
+						</ul>
+
+						<button class="btn navbar-btn dropdown-toggle" data-toggle="dropdown" data-target="apprenticeshipsDropdown">Apprenticeships</button>
+							<ul id="apprenticeshipsDropdowns" class="dropdown-menu">
+							  	<li class="dropdown-submenu">
+									<button class="btn navbar-btn" tabindex="-1" href="#">Computer Science</button>
+									<!-- <a class="nav-link" tabindex="-1" href="#">Computer Science</a> -->
+								</li>
+								<li class="dropdown-submenu">
+										<a class="nav-link" href="#">Cyber Operations</a>
+								</li>
+							</ul>
+					  </li>
+					</ul>
+				  </div>
+
 				  <li class="nav-item">
-					<a class="nav-link" href="#">Info</a>
-				  </li>
-				  <li class="nav-item">
-					<a class="nav-link" href="#">Contact Us</a>
-				  </li>
-				  <li class="nav-item">
-					<a class="nav-link" href="#">Internships</a>
+					<a class="nav-link" href="#">About Us</a>
 				  </li>
 				</ul>
-				<form class="form-inline mt-2 mt-md-0">
+				<!-- <form class="form-inline mt-2 mt-md-0">
 				  <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
 				  <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-				</form>
+				</form> -->
 			  </div>
 			</nav>
 		  </header>
@@ -216,5 +244,13 @@
 		<script src="lib/js/jquery-3.2.1.slim.min.js"></script>
 		<script src="lib/js/popper.min.js"></script>
 		<script src="lib/js/bootstrap.min.js"></script>
+
+		<script>
+			$(".dropdown-submenu .dropdown-menu").on("click", function(e) {
+				$(this).next("ul").toggle();
+				e.stopPropagation();
+				e.preventDefault();
+			});
+		</script>
 	</body>
 </html>
