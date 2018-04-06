@@ -24,24 +24,29 @@ var tpl *template.Template
 
 func init() {
 	var err error
-	tpl = template.Must(template.New("").ParseGlob("www/*.html"))
-	config := dbConfig()
+	_, ok := os.LookupEnv("NODB")
+	if !ok {
+		tpl = template.Must(template.New("").ParseGlob("www/*.html"))
+		config := dbConfig()
 
-	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		config[dbhost], config[dbport], config[dbuser], config[dbpass], config[dbname],
-	)
+		psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+			config[dbhost], config[dbport], config[dbuser], config[dbpass], config[dbname],
+		)
 
-	db, err = sql.Open("postgres", psqlInfo)
-	if err != nil {
-		panic(err)
+		db, err = sql.Open("postgres", psqlInfo)
+		if err != nil {
+			panic(err)
+		}
+
+		err = db.Ping()
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(fmt.Sprintf("Successfully connected to the %s database!", config[dbname]))
+	} else {
+		fmt.Println("No Database being used")
 	}
-
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(fmt.Sprintf("Successfully connected to the %s database!", config[dbname]))
 }
 
 func main() {
