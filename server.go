@@ -11,14 +11,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
-	dbhost = "DBHOST"
-	dbport = "DBPORT"
-	dbuser = "DBUSER"
-	dbpass = "DBPASS"
-	dbname = "DBNAME"
-)
-
 var db *sql.DB
 var tpl *template.Template
 
@@ -41,6 +33,7 @@ func init() {
 
 func main() {
 	r := gin.Default()
+	tpl = template.Must(template.New("").ParseGlob("www/*.html"))
 
 	//Route for the static files in www/
 	r.Use(static.Serve("/www", static.LocalFile("www/", true)))
