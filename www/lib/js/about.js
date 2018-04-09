@@ -1,3 +1,4 @@
 $( document ).ready(function() {
-    $("#navi").load("/templates/navbar.html");
+    $("#navi").load("/www/templates/navbar.html");
+    $("#foot").load("/www/templates/footer.html");
 });
