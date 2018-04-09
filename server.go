@@ -21,19 +21,47 @@ const (
 
 var db *sql.DB
 var tpl *template.Template
+var errorChannel chan locationalError
+
+type locationalError struct {
+	Error                 error
+	Location, Sublocation string
+}
+
+//checking error functions
+//check if there was an error
+func checkErr(err error) {
+	if err != nil {
+		println(err)
+	}
+}
+
+func checkLogError(location, sublocation string, err error) {
+	if err != nil {
+		logError(location, sublocation, err)
+	}
+}
+
+func logError(location, sublocation string, err error) {
+	errorChannel <- locationalError{err, location, sublocation}
+}
+
+func errorDrain() {
+	var lErr locationalError
+	for {
+		select {
+		case lErr = <-errorChannel:
+			fmt.Println(lErr.Location, lErr.Sublocation, lErr.Error)
+			//Handle Error Logging Here
+		}
+	}
+}
 
 func init() {
 	var err error
 	_, ok := os.LookupEnv("NODB")
 	if !ok {
-		tpl = template.Must(template.New("").ParseGlob("www/*.html"))
-		config := dbConfig()
-
-		psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-			config[dbhost], config[dbport], config[dbuser], config[dbpass], config[dbname],
-		)
-
-		db, err = sql.Open("postgres", psqlInfo)
+		db, err = sql.Open("sqlite3", "./userDatabase.db?_busy_timeout=5000")
 		if err != nil {
 			panic(err)
 		}
@@ -42,14 +70,13 @@ func init() {
 		if err != nil {
 			panic(err)
 		}
-
-		fmt.Println(fmt.Sprintf("Successfully connected to the %s database!", config[dbname]))
 	} else {
 		fmt.Println("No Database being used")
 	}
 }
 
 func main() {
+	go errorDrain()
 	r := gin.Default()
 
 	//Route for the static files in www/
@@ -66,17 +93,4 @@ func main() {
 	})
 
 	panic(r.Run(":6600"))
-}
-
-func dbConfig() map[string]string {
-	conf := make(map[string]string)
-	conflist := []string{dbhost, dbport, dbuser, dbpass, dbname}
-	for _, config := range conflist {
-		con, ok := os.LookupEnv(config)
-		if !ok {
-			panic(fmt.Sprintf("%s environment variable required but not set", config))
-		}
-		conf[config] = con
-	}
-	return conf
 }
