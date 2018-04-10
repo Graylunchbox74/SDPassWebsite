@@ -1,12 +1,15 @@
 <html>
     <head>
             <link rel="stylesheet" type="text/css" href="/www/lib/css/bootstrap.min.css" />
-    </head>
-    <div id="navBar"></div>
+            <link rel="stylesheet" type="text/css" href="/www/lib/css/newPost.css" />
+
+        </head>
+
 
 
     <body>
-
+        <div id="navBar"></div>
+        <main>
         <form>
             <!-- select for what type of program post is -->
             <div class="form-group">
@@ -21,21 +24,27 @@
             <!-- input photo of business -->
             <div class="form-group">
                 <label for="inpEmployerPhoto">Employer Photo or Logo</label>
-                <input type="file" class="form-control-file" id="inpEmployerPhoto">
+                <input type="file" accept="image/*" class="form-control-file" id="inpEmployerPhoto">
             </div>
             
- 
-            <!-- Company name  -->
-            <input id="txtCompanyName" class="form-control" type="text" placeholder="Company Name">
+            <div class="form-group">
+                <!-- Company name  -->
+                <label for="txtCompanyName">Company Name</label>
+                <input id="txtCompanyName" class="form-control" type="text">
 
-            <!-- Post Position -->
-            <input id="txtPosition" class="form-control" type="text" placeholder="Position Name">
+                <!-- Post Position -->
+                <label for="txtPosition">Position Title</label>
+                <input id="txtPosition" class="form-control" type="text">
+                
+                <!-- Loction of company/position -->
+                <label for="txtLocation">Location</label>
+                <input id="txtLocation" class="form-control" type="text" placeholder="City, State">
 
-            <!-- Loction of company/position -->
-            <input id="txtLocation" class="form-control" type="text" placeholder="Loction Ex: (City, State)">
-
-            <!-- Payment of position -->
-            <input id="txtPay" class="form-control" type="text" placeholder="">
+                <!-- Payment of position -->
+                <label for="txtPay">Payment of position</label>
+                <input id="txtPay" class="form-control" type="text" >
+            </div>
+            
 
             <!-- description of post -->
             <div class="form-group">
@@ -44,6 +53,7 @@
             </div>
             <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
         </form>
+        </main>
         <div id="footer"></div>
     </body>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
