@@ -1,0 +1,60 @@
+<html>
+    <head>
+            <link rel="stylesheet" type="text/css" href="/www/lib/css/bootstrap.min.css" />
+    </head>
+    <div id="navBar"></div>
+
+
+    <body>
+
+        <form>
+            <!-- select for what type of program post is -->
+            <div class="form-group">
+            <label for="selProgramType">Program Type</label>
+            <select class="form-control" id="selProgramType">
+                <option>Internship</option>
+                <option>Apprenticeship</option>
+                <option>Certification</option>
+            </select>
+            </div>
+
+            <!-- input photo of business -->
+            <div class="form-group">
+                <label for="inpEmployerPhoto">Employer Photo or Logo</label>
+                <input type="file" class="form-control-file" id="inpEmployerPhoto">
+            </div>
+            
+ 
+            <!-- Company name  -->
+            <input id="txtCompanyName" class="form-control" type="text" placeholder="Company Name">
+
+            <!-- Post Position -->
+            <input id="txtPosition" class="form-control" type="text" placeholder="Position Name">
+
+            <!-- Loction of company/position -->
+            <input id="txtLocation" class="form-control" type="text" placeholder="Loction Ex: (City, State)">
+
+            <!-- Payment of position -->
+            <input id="txtPay" class="form-control" type="text" placeholder="">
+
+            <!-- description of post -->
+            <div class="form-group">
+            <label for="txtDescription">Description</label>
+            <textarea class="form-control" id="txtDescription" rows="3"></textarea>
+            </div>
+            <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
+        </form>
+        <div id="footer"></div>
+    </body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <!-- <script src="/www/lib/js/jquery-3.2.1.slim.min.js"></script> -->
+        <script src="/www/lib/js/popper.min.js"></script>
+        <script src="/www/lib/js/bootstrap.min.js"></script>
+        <script>
+                $(document).ready(function() {
+                    $("#navBar").load( "/www/templates/navbar.html" );
+                    $("#footer").load( "/www/templates/footer.html" );
+                });
+
+    </script>
+</html>
