@@ -6,42 +6,43 @@
 
 		<link rel="stylesheet" type="text/css" href="/www/lib/css/bootstrap.min.css" />
 	</head>
+	<div id="navBar"></div>
 	<body>
-		<div id="navi"></div>
-		
-		  	<main role="main">
-				<div class="container">
-					<h1 class="bd-title">About Us</h1>
-						<div class="row">
-							<div class="col-6">
-								SDPaSS is a community partnership designed to provide students with multiple pathways or “on-ramps” to quality employment through a credentialing system.
-								This SDPaSS model uses meaningful, job-related experiences including internships, apprenticeships, certificates, associate and baccalaureate degrees to provide students with jobs, and businesses with well-trained employees. While the model can be replicated across the state and in many job categories, this initial SDPaSS will focus on three high demand areas: software development, network services and cybersecurity.
-							</div>						
-							<div class="col"><img src="/www/lib/imgs/SDPaSSLogo.png" class="img-fluid"></div>
-						</div>
-					<h1 class="bd-title">What We Offer</h1>
-						<div class="row">
-							<div class="col-9">
-								<ul>
-									<li>Supervised internships in business/industry  -- supervised by faculty at Dakota State University or Southeast Technical Institute</li>
-									<li>Registered apprenticeships administered through the S.D. Department of Labor</li>
-									<li>Academic certificates in cybersecurity, network and security administration, or software development</li>
-									<li>Associate degrees in Software Support (SETI), Network & Security Administration (DSU), Software Development (DSU)</li>
-									<li>B.S. degrees in Cyber Operations (DSU), Network and Security Administration (DSU)</li>
-								</ul>
-								
-								
-								 
-								
-							</div>
-						</div>
+		<main role="main">
+			<div class="container">
+				<h1 class="bd-title">About Us</h1>
+				<div class="row">
+					<div class="col-6">
+						SDPaSS is a community partnership designed to provide students with multiple pathways or “on-ramps” to quality employment through a credentialing system.
+						This SDPaSS model uses meaningful, job-related experiences including internships, apprenticeships, certificates, associate and baccalaureate degrees to provide students with jobs, and businesses with well-trained employees. While the model can be replicated across the state and in many job categories, this initial SDPaSS will focus on three high demand areas: software development, network services and cybersecurity.
+					</div>						
+					<div class="col"><img src="/www/lib/imgs/SDPaSSLogo.png" class="img-fluid"></div>
 				</div>
-			</main>
-          
-          <div id="foot"></div>
-		<script src="/www/lib/js/jquery-3.2.1.slim.min.js"></script>
+				<h1 class="bd-title">What We Offer</h1>
+				<div class="row">
+					<div class="col-9">
+						<ul>
+							<li>Supervised internships in business/industry  -- supervised by faculty at Dakota State University or Southeast Technical Institute</li>
+							<li>Registered apprenticeships administered through the S.D. Department of Labor</li>
+							<li>Academic certificates in cybersecurity, network and security administration, or software development</li>
+							<li>Associate degrees in Software Support (SETI), Network & Security Administration (DSU), Software Development (DSU)</li>
+							<li>B.S. degrees in Cyber Operations (DSU), Network and Security Administration (DSU)</li>
+						</ul>
+					</div>
+				</div>
+			</div>	
+		</main>
+	</body>
+		  <div id="footer"></div>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<!-- <script src="/www/lib/js/jquery-3.2.1.slim.min.js"></script> -->
 		<script src="/www/lib/js/popper.min.js"></script>
 		<script src="/www/lib/js/bootstrap.min.js"></script>
-		<script src="/www/lib/js/about.js"></script>
-	</body>
+		<script>
+			$(document).ready(function() {
+				$("#navBar").load( "/www/templates/navbar.html" );
+				$("#footer").load( "/www/templates/footer.html" );
+			});
+		</script>
+	
 </html>
