@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"net/http"
 	"os"
 
 	"github.com/gin-contrib/static"
@@ -11,7 +12,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
+type locationalError struct {
+	Error                 error
+	Location, Sublocation string
+}
+
 var db *sql.DB
+var errorChannel chan locationalError
 var tpl *template.Template
 
 func init() {
@@ -49,4 +56,48 @@ func main() {
 	})
 
 	panic(r.Run(":6600"))
+}
+
+func checkLogError(location, sublocation string, err error) {
+	if err != nil {
+		logError(location, sublocation, err)
+	}
+}
+
+func errorDrain() {
+	var lErr locationalError
+	for {
+		select {
+		case lErr = <-errorChannel:
+			fmt.Println(lErr.Location, lErr.Sublocation, lErr)
+			//Handle Error Logging Here
+		}
+	}
+}
+
+func logError(location, sublocation string, err error) {
+	errorChannel <- locationalError{err, location, sublocation}
+}
+
+func isActiveSession(r *http.Request) bool {
+	funcLocation := "isActiveSession"
+	val, err := r.Cookie("uuid")
+
+	if err == nil {
+		var uid uint
+		err = db.QueryRow(`
+			SELECT 
+			uid 
+			FROM USER_SESSIONS 
+			WHERE uuid=$1`, val.Value,
+		).Scan(&uid)
+
+		if err != sql.ErrNoRows {
+			if err == nil {
+				return true
+			}
+			go logError(funcLocation, "1", err)
+		}
+	}
+	return false
 }
