@@ -60,6 +60,10 @@ func main() {
 		tpl.ExecuteTemplate(c.Writer, "about.html", nil)
 	})
 
+	r.GET("/login", func(c *gin.Context) {
+		tpl.ExecuteTemplate(c.Writer, "login.html", nil)
+	})
+
 	panic(r.Run(":6600"))
 }
 
