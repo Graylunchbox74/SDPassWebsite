@@ -17,6 +17,11 @@ type locationalError struct {
 	Location, Sublocation string
 }
 
+type internship struct {
+	id                                                         int
+	companyLogo, company, position, description, location, pay string
+}
+
 var db *sql.DB
 var errorChannel chan locationalError
 var tpl *template.Template
@@ -100,4 +105,14 @@ func isActiveSession(r *http.Request) bool {
 		}
 	}
 	return false
+}
+
+func addInternship(newInternship internship) error {
+	var location = "AddInternship"
+	var err error
+
+	_, err = db.Exec("INSERT INTO <tablename> (companyLogo, company, position, description, location, pay) values($1,$2,$3,$4,$5,$6)", newInternship.companyLogo, newInternship.company, newInternship.position, newInternship.description, newInternship.location, newInternship.pay)
+	checkLogError(location, "Exec for new internship", err)
+
+	return err
 }
