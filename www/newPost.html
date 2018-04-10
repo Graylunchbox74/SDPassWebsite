@@ -47,6 +47,33 @@
                 <label for="txtLocation">Location</label>
                 <input id="txtLocation" class="form-control" type="text" placeholder="City, State">
 
+                <!-- Contact info -->
+                <label for="txtContact">Contact Info</label>
+                <input id="txtContact" class="form-control" type="text" >
+
+
+                <!-- Start and end date -->
+                <div class="row" id="startAndEndRow">
+                    <div class="col">
+                        <label for="inpDateStart">Start Date</label>
+                        <input type="date" class="form-control" id="inpDateStart" placeholder="Start Date">
+                    </div>
+                    <div class="col">
+                        <label for="inpDateEnd">End Date</label>
+                        <input type="date" class="form-control" id="inpDateEnd" placeholder="End Date">
+                    </div>
+                </div>
+
+                <!-- major -->
+                <label for="selMajor">Major</label>
+                <select class="form-control" id="selMajor">
+                    <option></option>
+                </select>
+
+                <!-- Expiration of posting -->
+                <label for="inpDateExpr">Expiration of Post</label>
+                <input type="date" class="form-control" id="inpDateExpr" placeholder="Date">
+
                 <!-- Payment of position -->
                 <label for="txtPay">Payment of position</label>
                 <input id="txtPay" class="form-control" type="text" >
@@ -59,6 +86,8 @@
             <textarea class="form-control" id="txtDescription" rows="3"></textarea>
             </div>
             <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
+
+            
         </form>
         </main>
         <div id="footer"></div>
