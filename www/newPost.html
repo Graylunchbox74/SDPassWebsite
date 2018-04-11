@@ -17,7 +17,7 @@
     <body>
         <div id="navBar"></div>
         <main>
-        <form id="programForm">
+        <form id="programForm" action="/login" method="POST">
             <!-- select for what type of program post is -->
             <div class="form-group">
             <label for="selProgramType">Program Type</label>
@@ -31,13 +31,13 @@
             <!-- input photo of business -->
             <div class="form-group">
                 <label for="inpEmployerPhoto">Employer Photo or Logo</label>
-                <input type="file" accept="image/*" class="form-control-file" id="inpEmployerPhoto">
+                <input type="file" accept="image/*" class="form-control-file" form="programForm" name="companyLogo" id="inpEmployerPhoto">
             </div>
             
             <div class="form-group">
                 <!-- Company name  -->
                 <label for="txtCompanyName">Company Name</label>
-                <input id="txtCompanyName" class="form-control"  form="programForm" name="company_name" type="text">
+                <input id="txtCompanyName" class="form-control" form="programForm" name="companyName" type="text">
 
                 <!-- Post Position -->
                 <label for="txtPosition">Position Title</label>
@@ -49,18 +49,18 @@
 
                 <!-- Contact info -->
                 <label for="txtContact">Contact Info</label>
-                <input id="txtContact" class="form-control"  form="programForm" name="contact_info" type="text" >
+                <input id="txtContact" class="form-control"  form="programForm" name="contactInfo" type="text" >
 
 
                 <!-- Start and end date -->
                 <div class="row" id="startAndEndRow">
                     <div class="col">
                         <label for="inpDateStart">Start Date</label>
-                        <input type="date" class="form-control" id="inpDateStart"  form="programForm" name="date_start" placeholder="Start Date">
+                        <input type="date" class="form-control" id="inpDateStart"  form="programForm" name="startDate" placeholder="Start Date">
                     </div>
                     <div class="col">
                         <label for="inpDateEnd">End Date</label>
-                        <input type="date" class="form-control" id="inpDateEnd"  form="programForm" name="date_end" placeholder="End Date">
+                        <input type="date" class="form-control" id="inpDateEnd"  form="programForm" name="endDate" placeholder="End Date">
                     </div>
                 </div>
 
@@ -72,7 +72,7 @@
 
                 <!-- Expiration of posting -->
                 <label for="inpDateExpr">Expiration of Post</label>
-                <input type="date" class="form-control" id="inpDateExpr"  form="programForm" name="expiration" placeholder="Date">
+                <input type="date" class="form-control" id="inpDateExpr"  form="programForm" name="expirationDate" placeholder="Date">
 
                 <!-- Payment of position -->
                 <label for="txtPay">Payment of position</label>

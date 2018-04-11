@@ -73,20 +73,23 @@ func main() {
 
 	r.POST("/admin/add_program", func(c *gin.Context) {
 		checkAuth(c, func(c *gin.Context) {
+			//I would have liked this to be the area where we
+			//send back a confirmation page; will do it in the fucking future however
 			//get data from the request
-			company := c.PostForm("company")
 			//add a limit to the size of file
-			companyLogo := c.FormFile("companyLogo")
-			jobTitle := c.PostForm("jobTitle")
+			companyLogo, err := c.FormFile("companyPhoto")
+			position := c.PostForm("position")
 			description := c.PostForm("description")
 			location := c.PostForm("location")
 			pay := c.PostForm("pay")
-			expirationOfPosting := c.PostForm("expirationOfPosting")
+			expirationDate := c.PostForm("expirationDate")
 			contactInfo := c.PostForm("contactInfo")
 			majors := c.PostForm("majors")
 			typeOfProgram := c.PostForm("typeOfProgram")
-			startDate := c.PostForm("startDate")
-			endDate := c.PostForm("endDate")
+			startDate := c.PostForm("dateStart")
+			endDate := c.PostForm("dateEnd")
+			companyName := c.PostForm("companyName")
+			tags := c.PostForm("tags")
 
 			_, err := db.Exec("INSERT INTO currentProgarms (company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, contactInfo, majors, typeOfProgram, startDate, endDate)values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, contactInfo, majors, typeOfProgram, startDate, endDate)
 			checkLogError("AddingProgram", "Adding a program to the database", err)
