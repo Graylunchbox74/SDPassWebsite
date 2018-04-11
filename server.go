@@ -20,7 +20,7 @@ type locationalError struct {
 	Location, Sublocation string
 }
 
-type internship struct {
+type program struct {
 	id int
 	companyLogo, company, position, description, location, majors, jobTitle,
 	expirationOfPosting, contactInfo, typeOfProgram, startDate, endDate string
@@ -198,12 +198,42 @@ func isActiveSession(r *http.Request) bool {
 	return false
 }
 
-func addInternship(newInternship internship) error {
-	var location = "AddInternship"
+func addProgram(newprogram program) error {
+	var location = "Addprogram"
 	var err error
 
-	_, err = db.Exec("INSERT INTO currentProgarms (company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, contactInfo, majors, typeOfProgram, startDate, endDate)values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", newInternship.company, newInternship.companyLogo, newInternship.jobTitle, newInternship.description, newInternship.location, newInternship.pay, newInternship.expirationOfPosting, newInternship.contactInfo, newInternship.majors, newInternship.typeOfProgram, newInternship.startDate, newInternship.endDate)
-	checkLogError(location, "Exec for new internship", err)
+	_, err = db.Exec("INSERT INTO currentProgarms (company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, contactInfo, majors, typeOfProgram, startDate, endDate)values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", newprogram.company, newprogram.companyLogo, newprogram.jobTitle, newprogram.description, newprogram.location, newprogram.pay, newprogram.expirationOfPosting, newprogram.contactInfo, newprogram.majors, newprogram.typeOfProgram, newprogram.startDate, newprogram.endDate)
+	checkLogError(location, "Exec for new program", err)
+
+	return err
+}
+
+func deleteProgram(delprogram program) error {
+	var location = "deleteprogram"
+	var err error
+
+	_, err = db.Exec("DELETE FROM currentPrograms WHERE id=$1", delprogram.id)
+	checkLogError(location, "Deleting a program from currentPrograms", err)
+
+	return err
+}
+
+func updateProgram(upProgram program, keyword, newValue string) error {
+	var location = "updateProgram String"
+	var err error
+
+	_, err = db.Exec("UPDATE currentPrograms SET $1=$2 WHERE id=$3", keyword, newValue, upProgram.id)
+	checkLogError(location, "updating a program in currentPrograms", err)
+
+	return err
+}
+
+func updatePay(upProgram program, keyword string, newValue float32) error {
+	var location = "updateProgram String"
+	var err error
+
+	_, err = db.Exec("UPDATE currentPrograms SET $1=$2 WHERE id=$3", keyword, newValue, upProgram.id)
+	checkLogError(location, "updating a program in currentPrograms", err)
 
 	return err
 }
