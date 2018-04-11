@@ -10,6 +10,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
@@ -106,28 +107,35 @@ func main() {
 							if err != os.ErrExist {
 								writer := bufio.NewWriter(fi)
 							}
+							startDateString := c.PostForm("startDate")
+							if err != nil {
+								checkLogError(c.Request.URL.String(), "6", tpl.ExecuteTemplate(c.Writer, "error.html", "startTime name cannot be empty"))
+							} else {
+								startDate, err := time.Parse("Unix", startDateString)
+								if err != nil {
+								}
+								jobTitle := c.PostForm("position")
+								description := c.PostForm("description")
+								location := c.PostForm("location")
+								pay := c.PostForm("pay")
+								expirationOfPosting := c.PostForm("expirationDate")
+								contactInfo := c.PostForm("contactInfo")
+								majors := c.PostForm("majors")
+								typeOfProgram := c.PostForm("typeOfProgram")
 
-							jobTitle := c.PostForm("position")
-							description := c.PostForm("description")
-							location := c.PostForm("location")
-							pay := c.PostForm("pay")
-							expirationOfPosting := c.PostForm("expirationDate")
-							contactInfo := c.PostForm("contactInfo")
-							majors := c.PostForm("majors")
-							typeOfProgram := c.PostForm("typeOfProgram")
-							startDate := c.PostForm("dateStart")
-							endDate := c.PostForm("dateEnd")
-							tags := c.PostForm("tags")
+								endDate := c.PostForm("dateEnd")
+								tags := c.PostForm("tags")
 
-							_, err := db.Exec(
-								`INSERT INTO currentProgarms (
+								_, err := db.Exec(
+									`INSERT INTO currentProgarms (
 						company, companyLogo, jobTitle, description, location, pay, expirationOfPosting,
 						contactInfo, majors, typeOfProgram, startDate, endDate
 					) values (
 						$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
 					)`, company, companyLogoLocation, jobTitle, description, location, pay, expirationOfPosting,
-								contactInfo, majors, typeOfProgram, startDate, endDate)
-							checkLogError(c.Request.URL.String(), "1", err)
+									contactInfo, majors, typeOfProgram, startDate, endDate)
+								checkLogError(c.Request.URL.String(), "1", err)
+							}
 						}
 					}
 				}
@@ -145,13 +153,13 @@ func main() {
 		})
 	})
 
-	r.POST("/select_programs", func(c *gin.Context) {
+	r.POST("/search", func(c *gin.Context) {
 		checkAuth(c, func(c *gin.Context) {
 			//get data from the request
 			payString := c.PostForm("pay")
 			pay, err := strconv.ParseFloat(payString, 32)
+			checkLogError(c.Request.URL.String(), "1", err)
 			if err == nil {
-
 			}
 
 		})
