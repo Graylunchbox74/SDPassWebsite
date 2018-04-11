@@ -18,8 +18,10 @@ type locationalError struct {
 }
 
 type internship struct {
-	id                                                         int
-	companyLogo, company, position, description, location, pay string
+	id int
+	companyLogo, company, position, description, location, majors, jobTitle,
+	expirationOfPosting, contactInfo, typeOfProgram, startDate, endDate string
+	pay float32
 }
 
 var db *sql.DB
@@ -115,7 +117,7 @@ func addInternship(newInternship internship) error {
 	var location = "AddInternship"
 	var err error
 
-	_, err = db.Exec("INSERT INTO <tablename> (companyLogo, company, position, description, location, pay) values($1,$2,$3,$4,$5,$6)", newInternship.companyLogo, newInternship.company, newInternship.position, newInternship.description, newInternship.location, newInternship.pay)
+	_, err = db.Exec("INSERT INTO currentProgarms (company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, contactInfo, majors, typeOfProgram, startDate, endDate)values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", newInternship.company, newInternship.companyLogo, newInternship.jobTitle, newInternship.description, newInternship.location, newInternship.pay, newInternship.expirationOfPosting, newInternship.contactInfo, newInternship.majors, newInternship.typeOfProgram, newInternship.startDate, newInternship.endDate)
 	checkLogError(location, "Exec for new internship", err)
 
 	return err
