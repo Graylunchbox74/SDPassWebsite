@@ -65,15 +65,30 @@ func main() {
 		tpl.ExecuteTemplate(c.Writer, "about.html", nil)
 	})
 
-	r.GET("/admin/add_internship", func(c *gin.Context) {
+	r.GET("/admin/add_program", func(c *gin.Context) {
 		checkAuth(c, func(c *gin.Context) {
 			tpl.ExecuteTemplate(c.Writer, "internships.html", nil)
 		})
 	})
 
-	r.POST("/admin/add_internship", func(c *gin.Context) {
+	r.POST("/admin/add_program", func(c *gin.Context) {
 		checkAuth(c, func(c *gin.Context) {
-			//HANDLE ADDING INTERNSHIP HERE
+			//get data from the request
+			company := c.PostForm("company")
+			companyLogo := c.FormFile("companyLogo")
+			jobTitle := c.PostForm("jobTitle")
+			description := c.PostForm("description")
+			location := c.PostForm("location")
+			pay := c.PostForm("pay")
+			expirationOfPosting := c.PostForm("expirationOfPosting")
+			contactInfo := c.PostForm("contactInfo")
+			majors := c.PostForm("majors")
+			typeOfProgram := c.PostForm("typeOfProgram")
+			startDate := c.PostForm("startDate")
+			endDate := c.PostForm("endDate")
+
+			_, err := db.Exec("INSERT INTO currentProgarms (company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, contactInfo, majors, typeOfProgram, startDate, endDate)values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, contactInfo, majors, typeOfProgram, startDate, endDate)
+			checkLogError("AddingProgram", "Adding a program to the database", err)
 		})
 	})
 
@@ -196,16 +211,6 @@ func isActiveSession(r *http.Request) bool {
 		}
 	}
 	return false
-}
-
-func addProgram(newprogram program) error {
-	var location = "Addprogram"
-	var err error
-
-	_, err = db.Exec("INSERT INTO currentProgarms (company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, contactInfo, majors, typeOfProgram, startDate, endDate)values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", newprogram.company, newprogram.companyLogo, newprogram.jobTitle, newprogram.description, newprogram.location, newprogram.pay, newprogram.expirationOfPosting, newprogram.contactInfo, newprogram.majors, newprogram.typeOfProgram, newprogram.startDate, newprogram.endDate)
-	checkLogError(location, "Exec for new program", err)
-
-	return err
 }
 
 func deleteProgram(delprogram program) error {
