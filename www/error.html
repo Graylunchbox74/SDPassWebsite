@@ -1,0 +1,33 @@
+<html>
+	<head>
+		<title>SDPass/Internships</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+		<link rel="stylesheet" type="text/css" href="/www/lib/css/bootstrap.min.css" />
+	</head>
+	<div id="navBar"></div>
+	<body>
+        <main>
+            <br><br><br>
+            <div class="container" id="error">
+                <div class="row">
+                    <div class="col" style="text-align: center">This is some text</div>
+                </div>
+            </div><!--This is where the errors text will go-->
+		</main>
+	</body>
+		  <div id="footer"></div>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<!-- <script src="/www/lib/js/jquery-3.2.1.slim.min.js"></script> repair to make local?-->
+		<script src="/www/lib/js/popper.min.js"></script>
+		<script src="/www/lib/js/bootstrap.min.js"></script>
+		<script>
+			$(document).ready(function() {
+				$("#navBar").load( "/www/templates/navbar.html" );
+				$("#footer").load( "/www/templates/footer.html" );
+				//Swap to templating include on backend dev
+			});
+		</script>
+	
+</html>
