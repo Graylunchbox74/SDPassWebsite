@@ -113,28 +113,52 @@ func main() {
 							} else {
 								startDate, err := time.Parse("Unix", startDateString)
 								if err != nil {
-								}
-								jobTitle := c.PostForm("position")
-								description := c.PostForm("description")
-								location := c.PostForm("location")
-								pay := c.PostForm("pay")
-								expirationOfPosting := c.PostForm("expirationDate")
-								contactInfo := c.PostForm("contactInfo")
-								majors := c.PostForm("majors")
-								typeOfProgram := c.PostForm("typeOfProgram")
+									checkLogError(c.Request.URL.String(), "7", tpl.ExecuteTemplate(c.Writer, "error.html", "Error parsing startTime"))
+								} else {
+									endDateString := c.PostForm("endDate")
+									if endDateString == "" {
+										checkLogError(c.Request.URL.String(), "8", tpl.ExecuteTemplate(c.Writer, "error.html", "endTime cannot be empty"))
+									} else {
+										endDate, err := time.Parse("Unix", endDateString)
+										if err != nil {
+											checkLogError(c.Request.URL.String(), "9", tpl.ExecuteTemplate(c.Writer, "error.html", "Error parsing endTime"))
+										} else {
+											if startDate.After(endDate) {
+												checkLogError(c.Request.URL.String(), "10", tpl.ExecuteTemplate(c.Writer, "error.html", "Error startDate is after endDate"))
+											} else {
+												if startDate.After(time.Now().AddDate(1, 0, 0)) {
+													checkLogError(c.Request.URL.String(), "11", tpl.ExecuteTemplate(c.Writer, "error.html", "Error startDate is after a year from now"))
+												} else {
+													if endDate.After(time.Now().AddDate(1, 0, 0)) {
+														checkLogError(c.Request.URL.String(), "12", tpl.ExecuteTemplate(c.Writer, "error.html", "Error endDate is after a year from now"))
+													} else {
+														expirationOfPostingString := c.PostForm("expirationDate")
+														jobTitle := c.PostForm("position")
+														description := c.PostForm("description")
+														location := c.PostForm("location")
+														pay := c.PostForm("pay")
+														expirationOfPosting := c.PostForm("expirationDate")
+														contactInfo := c.PostForm("contactInfo")
+														typeOfProgram := c.PostForm("typeOfProgram")
 
-								endDate := c.PostForm("dateEnd")
-								tags := c.PostForm("tags")
+														endDate := c.PostForm("dateEnd")
+														majors := c.PostForm("tags")
 
-								_, err := db.Exec(
-									`INSERT INTO currentProgarms (
+														_, err := db.Exec(
+															`INSERT INTO currentProgarms (
 						company, companyLogo, jobTitle, description, location, pay, expirationOfPosting,
 						contactInfo, majors, typeOfProgram, startDate, endDate
 					) values (
 						$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
 					)`, company, companyLogoLocation, jobTitle, description, location, pay, expirationOfPosting,
-									contactInfo, majors, typeOfProgram, startDate, endDate)
-								checkLogError(c.Request.URL.String(), "1", err)
+															contactInfo, majors, typeOfProgram, startDate, endDate)
+														checkLogError(c.Request.URL.String(), "1", err)
+													}
+												}
+											}
+										}
+									}
+								}
 							}
 						}
 					}
