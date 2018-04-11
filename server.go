@@ -63,6 +63,18 @@ func main() {
 		tpl.ExecuteTemplate(c.Writer, "about.html", nil)
 	})
 
+	r.GET("/admin/add_internship", func(c *gin.Context) {
+		checkAuth(c, func(c *gin.Context) {
+			tpl.ExecuteTemplate(c.Writer, "internships.html", nil)
+		})
+	})
+
+	r.POST("/admin/add_internship", func(c *gin.Context) {
+		checkAuth(c, func(c *gin.Context) {
+			//HANDLE ADDING INTERNSHIP HERE
+		})
+	})
+
 	r.GET("/login", func(c *gin.Context) {
 		if isActiveSession(c.Request) {
 			tpl.ExecuteTemplate(c.Writer, "error.html", "You are already logged in!")
