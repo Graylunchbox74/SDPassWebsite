@@ -6,10 +6,13 @@ import (
 	"html/template"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	uuid "github.com/satori/go.uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type locationalError struct {
@@ -61,16 +64,72 @@ func main() {
 	})
 
 	r.GET("/login", func(c *gin.Context) {
-		tpl.ExecuteTemplate(c.Writer, "login.html", nil)
+		if isActiveSession(c.Request) {
+			tpl.ExecuteTemplate(c.Writer, "error.html", "You are already logged in!")
+		} else {
+			tpl.ExecuteTemplate(c.Writer, "login.html", nil)
+		}
+	})
+
+	r.POST("/login", func(c *gin.Context) {
+		var suser, spassword string
+		user := strings.ToLower(c.PostForm("username"))
+		password := c.PostForm("password")
+
+		err := db.QueryRow(`
+			SELECT username, password 
+			FROM USERS 
+			WHERE username=$1`, user,
+		).Scan(
+			&suser, &spassword,
+		)
+
+		if err == sql.ErrNoRows {
+			go checkLogError(c.Request.URL.String(), "1", tpl.ExecuteTemplate(c.Writer, "login.html", "BAD LOGIN!"))
+		} else {
+			if err != nil {
+				go logError(c.Request.URL.String(), "2", err)
+				go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "login.html", "ERROR LOGGING IN!"))
+			} else {
+				if checkPasswordHash(password, spassword) {
+					uid := getUUID()
+					http.SetCookie(c.Writer, &http.Cookie{Name: "uuid", Value: uid})
+
+					_, err = db.Exec("INSERT INTO USER_SESSIONS (pid, uuid) VALUES ($1, $2)", user, uid)
+
+					if err != nil {
+						go logError(c.Request.URL.String(), "4", err)
+						go checkLogError(c.Request.URL.String(), "5", tpl.ExecuteTemplate(c.Writer, "login.html", "ERROR LOGGING IN!"))
+					} else {
+						c.Redirect(303, "/")
+					}
+				} else {
+					go checkLogError(c.Request.URL.String(), "7", tpl.ExecuteTemplate(c.Writer, "login.html", "BAD LOGIN!"))
+				}
+			}
+		}
 	})
 
 	panic(r.Run(":6600"))
+}
+
+func checkAuth(c *gin.Context, f func(*gin.Context)) {
+	if isActiveSession(c.Request) {
+		f(c)
+	} else {
+		c.Redirect(303, "/")
+	}
 }
 
 func checkLogError(location, sublocation string, err error) {
 	if err != nil {
 		logError(location, sublocation, err)
 	}
+}
+
+func checkPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }
 
 func errorDrain() {
@@ -84,8 +143,22 @@ func errorDrain() {
 	}
 }
 
+func getUUID() string {
+	var err error
+	var uid uuid.UUID
+	for uid, err = uuid.NewV4(); err != nil; {
+		uid, err = uuid.NewV4()
+	}
+	return uid.String()
+}
+
 func logError(location, sublocation string, err error) {
 	errorChannel <- locationalError{err, location, sublocation}
+}
+
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
 }
 
 func isActiveSession(r *http.Request) bool {
