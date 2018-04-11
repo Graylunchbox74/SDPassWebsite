@@ -10,7 +10,7 @@ import (
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
-	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 )

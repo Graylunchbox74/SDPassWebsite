@@ -17,7 +17,7 @@
     <body>
         <div id="navBar"></div>
         <main>
-        <form>
+        <form id="programForm">
             <!-- select for what type of program post is -->
             <div class="form-group">
             <label for="selProgramType">Program Type</label>
@@ -37,55 +37,55 @@
             <div class="form-group">
                 <!-- Company name  -->
                 <label for="txtCompanyName">Company Name</label>
-                <input id="txtCompanyName" class="form-control" type="text">
+                <input id="txtCompanyName" class="form-control"  form="programForm" name="company_name" type="text">
 
                 <!-- Post Position -->
                 <label for="txtPosition">Position Title</label>
-                <input id="txtPosition" class="form-control" type="text">
+                <input id="txtPosition" class="form-control"  form="programForm" name="position" type="text">
                 
-                <!-- Loction of company/position -->
+                <!-- Location of company/position -->
                 <label for="txtLocation">Location</label>
-                <input id="txtLocation" class="form-control" type="text" placeholder="City, State">
+                <input id="txtLocation" class="form-control"  form="programForm" name="location" type="text" placeholder="City, State">
 
                 <!-- Contact info -->
                 <label for="txtContact">Contact Info</label>
-                <input id="txtContact" class="form-control" type="text" >
+                <input id="txtContact" class="form-control"  form="programForm" name="contact_info" type="text" >
 
 
                 <!-- Start and end date -->
                 <div class="row" id="startAndEndRow">
                     <div class="col">
                         <label for="inpDateStart">Start Date</label>
-                        <input type="date" class="form-control" id="inpDateStart" placeholder="Start Date">
+                        <input type="date" class="form-control" id="inpDateStart"  form="programForm" name="date_start" placeholder="Start Date">
                     </div>
                     <div class="col">
                         <label for="inpDateEnd">End Date</label>
-                        <input type="date" class="form-control" id="inpDateEnd" placeholder="End Date">
+                        <input type="date" class="form-control" id="inpDateEnd"  form="programForm" name="date_end" placeholder="End Date">
                     </div>
                 </div>
 
                 <!-- major -->
                 <label for="selMajor">Major</label>
-                <select class="form-control" id="selMajor">
-                    <option></option>
+                <select class="form-control" id="selMajor" form="programForm" name="tags">
+                    <option>PLACEHOLDER</option>
                 </select>
 
                 <!-- Expiration of posting -->
                 <label for="inpDateExpr">Expiration of Post</label>
-                <input type="date" class="form-control" id="inpDateExpr" placeholder="Date">
+                <input type="date" class="form-control" id="inpDateExpr"  form="programForm" name="expiration" placeholder="Date">
 
                 <!-- Payment of position -->
                 <label for="txtPay">Payment of position</label>
-                <input id="txtPay" class="form-control" type="text" >
+                <input id="txtPay" class="form-control"  form="programForm" name="payment" type="text" >
             </div>
             
 
             <!-- description of post -->
             <div class="form-group">
-            <label for="txtDescription">Description</label>
-            <textarea class="form-control" id="txtDescription" rows="3"></textarea>
+                <label for="txtDescription">Description</label>
+                <textarea form="programForm"  class="form-control" id="txtDescription" name="description" rows="3"></textarea>
             </div>
-            <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
+            <button form="programForm"  type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
 
             
         </form>
