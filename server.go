@@ -75,6 +75,7 @@ func main() {
 		checkAuth(c, func(c *gin.Context) {
 			//get data from the request
 			company := c.PostForm("company")
+			//add a limit to the size of file
 			companyLogo := c.FormFile("companyLogo")
 			jobTitle := c.PostForm("jobTitle")
 			description := c.PostForm("description")
@@ -89,6 +90,22 @@ func main() {
 
 			_, err := db.Exec("INSERT INTO currentProgarms (company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, contactInfo, majors, typeOfProgram, startDate, endDate)values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, contactInfo, majors, typeOfProgram, startDate, endDate)
 			checkLogError("AddingProgram", "Adding a program to the database", err)
+		})
+	})
+
+	r.GET("/admin/delete_program", func(c *gin.Context) {
+		checkAuth(c, func(c *gin.Context) {
+			tpl.ExecuteTemplate(c.Writer, "internships.html", nil)
+		})
+	})
+
+	r.POST("/admin/delete_program", func(c *gin.Context) {
+		checkAuth(c, func(c *gin.Context) {
+			//get data from the request
+			id := c.PostForm("id")
+
+			_, err := db.Exec("DELETE FROM currentPrograms where id=$1", id)
+			checkLogError("DeletingProgram", "Deleting a program to the database", err)
 		})
 	})
 
@@ -211,16 +228,6 @@ func isActiveSession(r *http.Request) bool {
 		}
 	}
 	return false
-}
-
-func deleteProgram(delprogram program) error {
-	var location = "deleteprogram"
-	var err error
-
-	_, err = db.Exec("DELETE FROM currentPrograms WHERE id=$1", delprogram.id)
-	checkLogError(location, "Deleting a program from currentPrograms", err)
-
-	return err
 }
 
 func updateProgram(upProgram program, keyword, newValue string) error {
