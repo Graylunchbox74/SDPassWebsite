@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/gin-contrib/static"
@@ -90,16 +91,16 @@ func main() {
 				if err != nil {
 					go checkLogError(c.Request.URL.String(), "2", tpl.ExecuteTemplate(c.Writer, "error.html", "Error with uploaded picture, try again"))
 				} else {
-					companyName := c.PostForm("companyName")
+					company := c.PostForm("companyName")
 
-					if companyName == "" {
+					if company == "" {
 						go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "error.html", "Company name cannot be empty"))
 					} else {
-						fi, err := os.Open(path.Join("www/lib/imgs/companyImages", path.Base(companyName)))
+						fi, err := os.Open(path.Join("www/lib/imgs/companyImages", path.Base(company)))
 						defer fi.Close()
 
 						if err != nil && err != os.ErrExist {
-							go checkLogError(c.Request.URL.String(), "4", os.Remove(path.Join("www/lib/imgs/companyImages", path.Base(companyName))))
+							go checkLogError(c.Request.URL.String(), "4", os.Remove(path.Join("www/lib/imgs/companyImages", path.Base(company))))
 							go checkLogError(c.Request.URL.String(), "5", tpl.ExecuteTemplate(c.Writer, "error.html", "An error occured, please try again"))
 						} else {
 							if err != os.ErrExist {
@@ -120,7 +121,7 @@ func main() {
 
 							_, err := db.Exec(
 								`INSERT INTO currentProgarms (
-						company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, 
+						company, companyLogo, jobTitle, description, location, pay, expirationOfPosting,
 						contactInfo, majors, typeOfProgram, startDate, endDate
 					) values (
 						$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
@@ -134,19 +135,25 @@ func main() {
 		})
 	})
 
-	r.GET("/admin/delete_program", func(c *gin.Context) {
+	r.POST("/admin/delete_program/:id", func(c *gin.Context) {
 		checkAuth(c, func(c *gin.Context) {
-			tpl.ExecuteTemplate(c.Writer, "internships.html", nil)
+			//get data from the request
+			id := c.Param("id")
+
+			_, err := db.Exec("DELETE FROM currentPrograms where id=$1", id)
+			checkLogError(c.Request.URL.String(), "2", err)
 		})
 	})
 
-	r.POST("/admin/delete_program", func(c *gin.Context) {
+	r.POST("/select_programs", func(c *gin.Context) {
 		checkAuth(c, func(c *gin.Context) {
 			//get data from the request
-			id := c.PostForm("id")
+			payString := c.PostForm("pay")
+			pay, err := strconv.ParseFloat(payString, 32)
+			if err == nil {
 
-			_, err := db.Exec("DELETE FROM currentPrograms where id=$1", id)
-			checkLogError("DeletingProgram", "Deleting a program to the database", err)
+			}
+
 		})
 	})
 
@@ -164,8 +171,8 @@ func main() {
 		password := c.PostForm("password")
 
 		err := db.QueryRow(`
-			SELECT username, password 
-			FROM USERS 
+			SELECT username, password
+			FROM USERS
 			WHERE username=$1`, user,
 		).Scan(
 			&suser, &spassword,
@@ -255,9 +262,9 @@ func isActiveSession(r *http.Request) bool {
 	if err == nil {
 		var uid uint
 		err = db.QueryRow(`
-			SELECT 
-			uid 
-			FROM USER_SESSIONS 
+			SELECT
+			uid
+			FROM USER_SESSIONS
 			WHERE uuid=$1`, val.Value,
 		).Scan(&uid)
 
