@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"fmt"
 	"html/template"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/gin-contrib/static"
@@ -78,21 +80,57 @@ func main() {
 			//get data from the request
 			//add a limit to the size of file
 			companyLogo, err := c.FormFile("companyPhoto")
-			position := c.PostForm("position")
-			description := c.PostForm("description")
-			location := c.PostForm("location")
-			pay := c.PostForm("pay")
-			expirationDate := c.PostForm("expirationDate")
-			contactInfo := c.PostForm("contactInfo")
-			majors := c.PostForm("majors")
-			typeOfProgram := c.PostForm("typeOfProgram")
-			startDate := c.PostForm("dateStart")
-			endDate := c.PostForm("dateEnd")
-			companyName := c.PostForm("companyName")
-			tags := c.PostForm("tags")
 
-			_, err := db.Exec("INSERT INTO currentProgarms (company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, contactInfo, majors, typeOfProgram, startDate, endDate)values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, contactInfo, majors, typeOfProgram, startDate, endDate)
-			checkLogError("AddingProgram", "Adding a program to the database", err)
+			if err != nil {
+				go checkLogError(c.Request.URL.String(), "1", tpl.ExecuteTemplate(c.Writer, "error.html", "Error with uploaded picture, try again"))
+			} else {
+				pfi, err := companyLogo.Open()
+				defer pfi.Close()
+
+				if err != nil {
+					go checkLogError(c.Request.URL.String(), "2", tpl.ExecuteTemplate(c.Writer, "error.html", "Error with uploaded picture, try again"))
+				} else {
+					companyName := c.PostForm("companyName")
+
+					if companyName == "" {
+						go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "error.html", "Company name cannot be empty"))
+					} else {
+						fi, err := os.Open(path.Join("www/lib/imgs/companyImages", path.Base(companyName)))
+						defer fi.Close()
+
+						if err != nil && err != os.ErrExist {
+							go checkLogError(c.Request.URL.String(), "4", os.Remove(path.Join("www/lib/imgs/companyImages", path.Base(companyName))))
+							go checkLogError(c.Request.URL.String(), "5", tpl.ExecuteTemplate(c.Writer, "error.html", "An error occured, please try again"))
+						} else {
+							if err != os.ErrExist {
+								writer := bufio.NewWriter(fi)
+							}
+
+							jobTitle := c.PostForm("position")
+							description := c.PostForm("description")
+							location := c.PostForm("location")
+							pay := c.PostForm("pay")
+							expirationOfPosting := c.PostForm("expirationDate")
+							contactInfo := c.PostForm("contactInfo")
+							majors := c.PostForm("majors")
+							typeOfProgram := c.PostForm("typeOfProgram")
+							startDate := c.PostForm("dateStart")
+							endDate := c.PostForm("dateEnd")
+							tags := c.PostForm("tags")
+
+							_, err := db.Exec(
+								`INSERT INTO currentProgarms (
+						company, companyLogo, jobTitle, description, location, pay, expirationOfPosting, 
+						contactInfo, majors, typeOfProgram, startDate, endDate
+					) values (
+						$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
+					)`, company, companyLogoLocation, jobTitle, description, location, pay, expirationOfPosting,
+								contactInfo, majors, typeOfProgram, startDate, endDate)
+							checkLogError(c.Request.URL.String(), "1", err)
+						}
+					}
+				}
+			}
 		})
 	})
 
