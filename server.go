@@ -379,11 +379,16 @@ func main() {
 	})
 
 	r.POST("/login", func(c *gin.Context) {
-		var suser, spassword string
+		var password, suser, spassword string
 		user := strings.ToLower(c.PostForm("username"))
-		password := c.PostForm("password")
+		var err error
+		attempts, maxattempts := 0, 10
+		for password, err = hashPassword(c.PostForm("password")); err == nil && attempts < maxattempts; {
+			password, err = hashPassword(c.PostForm("password"))
+			attempts++
+		}
 
-		err := db.QueryRow(`
+		err = db.QueryRow(`
 			SELECT username, password
 			FROM USERS
 			WHERE username=$1`, user,
