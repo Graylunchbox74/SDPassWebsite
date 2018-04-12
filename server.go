@@ -305,13 +305,14 @@ func main() {
 		})
 	})
 
-	r.POST("/admin/delete_program/:id", func(c *gin.Context) {
+	r.GET("/admin/delete_program/:id", func(c *gin.Context) {
 		checkAuth(c, func(c *gin.Context) {
 			//get data from the request
 			id := c.Param("id")
 
 			_, err := db.Exec("DELETE FROM currentPrograms where id=$1", id)
 			checkLogError(c.Request.URL.String(), "2", err)
+			c.Redirect(303, "/admin/add_program")
 		})
 	})
 
