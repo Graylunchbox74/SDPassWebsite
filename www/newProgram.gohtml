@@ -94,22 +94,57 @@
         </form>
     </main>
     <div class="container">
-        {{if .internships}} 
+        {{if .}} {{if .internships}}
+        <h1>
+            Internships
+        </h1>
         {{range .internships}}
         <div class="row px-3">
             <div class="col existingProgram">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">{{.company}}</h5>
-                        <h3 class="card-title">{{.jobTitle}}</h5>
+                        <h1 class="card-title">{{.company}}</h1>
+                        <h3 class="card-title">{{.jobTitle}}</h3>
+                        <a href="/programs/{{.id}}" class="btn btn-primary">Learn More</a>
+                        <a href="/admin/delete_program/{{.id}}" class="btn btn-primary">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>{{if .apprenticeships}}
+        <h1>
+            Apprenticeships
+        </h1>
+        {{range .apprenticeships}}
+        <div class="row px-3">
+            <div class="col existingProgram">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="card-title">{{.company}}</h1>
+                        <h3 class="card-title">{{.jobTitle}}</h3>
                         <a href="/programs/{{.id}}" class="btn btn-primary">Learn More</a>
                         <a href="/admin/delete_program/{{.id}}" class="btn btn-primary">Delete</a>
                     </div>
                 </div>
             </div>
         </div>
-        {{end}} 
-        {{end}}
+        {{end}} {{end}} {{if .certifications}}
+        <h1>
+            Certification
+        </h1>
+        {{range .certification}}
+        <div class="row px-3">
+            <div class="col existingProgram">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="card-title">{{.company}}</h1>
+                        <h3 class="card-title">{{.jobTitle}}</h3>
+                        <a href="/programs/{{.id}}" class="btn btn-primary">Learn More</a>
+                        <a href="/admin/delete_program/{{.id}}" class="btn btn-primary">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}} {{end}} {{end}}
         <div id="footer">
             {{template "footer"}}
         </div>

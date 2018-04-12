@@ -10,7 +10,6 @@ import (
 	"os"
 	"path"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -317,20 +316,55 @@ func main() {
 
 	r.POST("/search", func(c *gin.Context) {
 		checkAuth(c, func(c *gin.Context) {
-			//get data from the request
-			var conditionList []string
-			conditionList = append(conditionList, "SELECT * FROM currentPrograms WHERE")
-			payString := c.PostForm("pay")
-			pay, err := strconv.ParseFloat(payString, 32)
-			checkLogError(c.Request.URL.String(), "1", err)
-			if err != nil {
-				checkLogError(c.Request.URL.String(), "2", err)
-			} else {
-				if pay != -1 {
-					conditionList = append(conditionList, "pay=$1", payString)
+			search := c.Param("search")
+			search = "*" + search + "*"
+			var p program
+			var progs programs
+			for _, prog := range []string{"internship", "apprenticeship", "certification"} {
+				rows, err := db.Query(`SELECT * FROM currentPrograms where typeOfProgram=$1 AND (jobTitle like $2 OR description like $2 OR location like $2 OR contactInfo like $2) order by company`, prog, search)
+				if err != nil {
+					go logError(c.Request.URL.String(), "1", err)
+					go checkLogError(c.Request.URL.String(), "2", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with getting data, try again"))
+					rows.Close()
+					return
 				}
-			}
+				for rows.Next() {
+					p = program{}
+					err = rows.Scan(
+						&p.id,
+						&p.company,
+						&p.companyLogo,
+						&p.jobTitle,
+						&p.description,
+						&p.location,
+						&p.pay,
+						&p.expirationOfPosting,
+						&p.contactInfo,
+						&p.majors,
+						&p.typeOfProgram,
+						&p.startDate,
+						&p.endDate,
+					)
 
+					if err != nil {
+						go logError(c.Request.URL.String(), "3", err)
+						go checkLogError(c.Request.URL.String(), "4", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with getting data, try again"))
+						rows.Close()
+						return
+					}
+
+					if prog == "internship" {
+						progs.internships = append(progs.internships, p)
+					} else if prog == "apprenticeship" {
+						progs.apprenticeships = append(progs.apprenticeships, p)
+					} else {
+						progs.certifications = append(progs.certifications, p)
+					}
+
+				}
+				rows.Close()
+			}
+			tpl.ExecuteTemplate(c.Writer, "internships.gohtml", progs)
 		})
 	})
 
@@ -378,6 +412,37 @@ func main() {
 					go checkLogError(c.Request.URL.String(), "7", tpl.ExecuteTemplate(c.Writer, "login.gohtml", "BAD LOGIN!"))
 				}
 			}
+		}
+	})
+
+	r.GET("/programs/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		p := program{}
+		err := db.QueryRow(`
+			SELECT *
+			FROM currentPrograms
+			WHERE id=$1`, id,
+		).Scan(
+			&p.id,
+			&p.company,
+			&p.companyLogo,
+			&p.jobTitle,
+			&p.description,
+			&p.location,
+			&p.pay,
+			&p.expirationOfPosting,
+			&p.contactInfo,
+			&p.majors,
+			&p.typeOfProgram,
+			&p.startDate,
+			&p.endDate,
+		)
+
+		if err != nil {
+			go logError(c.Request.URL.String(), "1", err)
+			go checkLogError(c.Request.URL.String(), "2", tpl.ExecuteTemplate(c.Writer, "information.gohtml", nil))
+		} else {
+			go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "information.gohtml", p))
 		}
 	})
 

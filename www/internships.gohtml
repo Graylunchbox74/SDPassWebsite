@@ -1,7 +1,7 @@
 <html>
 
 <head>
-	<title>SDPass/Internships</title>
+	<title>SDPass/Programs</title>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -17,18 +17,60 @@
 		<br>
 		<br>
 		<br>
-		<form class="form-inline mt-2 mt-md-0">
-			<input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+		<form class="form-inline mt-2 mt-md-0" action="/search" method="POST">
+			<input class="form-control mr-sm-2" type="text" placeholder="Search" name="search" aria-label="Search">
 			<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search Internships</button>
 		</form>
-
-		<!-- This is an example card for internship output -->
-		<div class="card" style="width: 18rem;">
-			<img class="card-img-top" src="{{.companyLogo}}" alt="Company Logo">
-			<div class="card-body">
-				<h5 class="card-title">{{.jobTitle}}</h5>
-				<a href="/programs/{{.id}}" class="btn btn-primary">Learn More</a>
+		<div class="container">
+			{{if .}} {{if .internships}}
+			<h1>
+				Internships
+			</h1>
+			{{range .internships}}
+			<div class="row px-3">
+				<div class="col existingProgram">
+					<div class="card" style="width: 18rem;">
+						<img class="card-img-top" src="{{.companyLogo}}" alt="Company Logo">
+						<div class="card-body">
+							<h1 class="card-title">{{.jobTitle}}</h1>
+							<a href="/programs/{{.id}}" class="btn btn-primary">Learn More</a>
+						</div>
+					</div>
+				</div>
 			</div>
+			{{end}} {{end}} {{if .apprenticeships}}
+			<h1>
+				Apprenticeships
+			</h1>
+			{{range .apprenticeships}}
+			<div class="row px-3">
+				<div class="col existingProgram">
+					<div class="card" style="width: 18rem;">
+						<img class="card-img-top" src="{{.companyLogo}}" alt="Company Logo">
+						<div class="card-body">
+							<h1 class="card-title">{{.jobTitle}}</h1>
+							<a href="/programs/{{.id}}" class="btn btn-primary">Learn More</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			{{end}} {{end}} {{if .certifications}}
+			<h1>
+				Certification
+			</h1>
+			{{range .certification}}
+			<div class="row px-3">
+				<div class="col existingProgram">
+					<div class="card" style="width: 18rem;">
+						<img class="card-img-top" src="{{.companyLogo}}" alt="Company Logo">
+						<div class="card-body">
+							<h1 class="card-title">{{.jobTitle}}</h1>
+							<a href="/programs/{{.id}}" class="btn btn-primary">Learn More</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			{{end}} {{end}} {{end}}
 		</div>
 	</main>
 </body>
