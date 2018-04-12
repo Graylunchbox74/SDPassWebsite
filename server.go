@@ -55,24 +55,22 @@ func init() {
 
 func main() {
 	r := gin.Default()
-	tpl = template.Must(template.New("").ParseGlob("www/*.html"))
-
+	tpl = template.Must(template.New("").ParseGlob("www/*.gohtml"))
+	tpl = template.Must(tpl.ParseGlob("www/templates/*.gohtml"))
 	//Route for the static files in www/
 	r.Use(static.Serve("/www", static.LocalFile("www/", true)))
 
 	r.GET("/", func(c *gin.Context) {
-
-		tpl.ExecuteTemplate(c.Writer, "index.html", nil)
+		tpl.ExecuteTemplate(c.Writer, "index.gohtml", nil)
 	})
 
 	r.GET("/about", func(c *gin.Context) {
-
-		tpl.ExecuteTemplate(c.Writer, "about.html", nil)
+		tpl.ExecuteTemplate(c.Writer, "about.gohtml", nil)
 	})
 
 	r.GET("/admin/add_program", func(c *gin.Context) {
 		checkAuth(c, func(c *gin.Context) {
-			tpl.ExecuteTemplate(c.Writer, "internships.html", nil)
+			tpl.ExecuteTemplate(c.Writer, "newProgram.gohtml", nil)
 		})
 	})
 
@@ -85,53 +83,53 @@ func main() {
 			companyLogo, err := c.FormFile("companyPhoto")
 
 			if err != nil {
-				go checkLogError(c.Request.URL.String(), "1", tpl.ExecuteTemplate(c.Writer, "error.html", "Error with uploaded picture, try again"))
+				go checkLogError(c.Request.URL.String(), "1", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with uploaded picture, try again"))
 			} else {
 				pfi, err := companyLogo.Open()
 				defer pfi.Close()
 
 				if err != nil {
-					go checkLogError(c.Request.URL.String(), "2", tpl.ExecuteTemplate(c.Writer, "error.html", "Error with uploaded picture, try again"))
+					go checkLogError(c.Request.URL.String(), "2", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with uploaded picture, try again"))
 				} else {
 					company := c.PostForm("companyName")
 
 					if company == "" {
-						go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "error.html", "Company name cannot be empty"))
+						go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Company name cannot be empty"))
 					} else {
 						fi, err := os.Open(path.Join("www/lib/imgs/companyImages", path.Base(company)))
 						defer fi.Close()
 
 						if err != nil && err != os.ErrExist {
 							go checkLogError(c.Request.URL.String(), "4", os.Remove(path.Join("www/lib/imgs/companyImages", path.Base(company))))
-							go checkLogError(c.Request.URL.String(), "5", tpl.ExecuteTemplate(c.Writer, "error.html", "An error occured, please try again"))
+							go checkLogError(c.Request.URL.String(), "5", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "An error occured, please try again"))
 						} else {
 							if err != os.ErrExist {
 								writer := bufio.NewWriter(fi)
 							}
 							startDateString := c.PostForm("startDate")
 							if err != nil {
-								checkLogError(c.Request.URL.String(), "6", tpl.ExecuteTemplate(c.Writer, "error.html", "startTime name cannot be empty"))
+								checkLogError(c.Request.URL.String(), "6", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "startTime name cannot be empty"))
 							} else {
 								startDate, err := time.Parse("Unix", startDateString)
 								if err != nil {
-									checkLogError(c.Request.URL.String(), "7", tpl.ExecuteTemplate(c.Writer, "error.html", "Error parsing startTime"))
+									checkLogError(c.Request.URL.String(), "7", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error parsing startTime"))
 								} else {
 									endDateString := c.PostForm("endDate")
 									if endDateString == "" {
-										checkLogError(c.Request.URL.String(), "8", tpl.ExecuteTemplate(c.Writer, "error.html", "endTime cannot be empty"))
+										checkLogError(c.Request.URL.String(), "8", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "endTime cannot be empty"))
 									} else {
 										endDate, err := time.Parse("Unix", endDateString)
 										if err != nil {
-											checkLogError(c.Request.URL.String(), "9", tpl.ExecuteTemplate(c.Writer, "error.html", "Error parsing endTime"))
+											checkLogError(c.Request.URL.String(), "9", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error parsing endTime"))
 										} else {
 											if startDate.After(endDate) {
-												checkLogError(c.Request.URL.String(), "10", tpl.ExecuteTemplate(c.Writer, "error.html", "Error startDate is after endDate"))
+												checkLogError(c.Request.URL.String(), "10", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error startDate is after endDate"))
 											} else {
 												if startDate.After(time.Now().AddDate(1, 0, 0)) {
-													checkLogError(c.Request.URL.String(), "11", tpl.ExecuteTemplate(c.Writer, "error.html", "Error startDate is after a year from now"))
+													checkLogError(c.Request.URL.String(), "11", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error startDate is after a year from now"))
 												} else {
 													if endDate.After(time.Now().AddDate(1, 0, 0)) {
-														checkLogError(c.Request.URL.String(), "12", tpl.ExecuteTemplate(c.Writer, "error.html", "Error endDate is after a year from now"))
+														checkLogError(c.Request.URL.String(), "12", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error endDate is after a year from now"))
 													} else {
 														expirationOfPostingString := c.PostForm("expirationDate")
 														jobTitle := c.PostForm("position")
@@ -143,9 +141,7 @@ func main() {
 														typeOfProgram := c.PostForm("typeOfProgram")
 
 														endDate := c.PostForm("dateEnd")
-														majors := c.PostForm("tags")
-
-														correctMajors(majors)
+														majors := correctMajors(c.PostForm("tags"))
 
 														_, err := db.Exec(
 															`INSERT INTO currentProgarms (
@@ -202,9 +198,9 @@ func main() {
 
 	r.GET("/login", func(c *gin.Context) {
 		if isActiveSession(c.Request) {
-			tpl.ExecuteTemplate(c.Writer, "error.html", "You are already logged in!")
+			tpl.ExecuteTemplate(c.Writer, "error.gohtml", "You are already logged in!")
 		} else {
-			tpl.ExecuteTemplate(c.Writer, "login.html", nil)
+			tpl.ExecuteTemplate(c.Writer, "login.gohtml", nil)
 		}
 	})
 
@@ -222,11 +218,11 @@ func main() {
 		)
 
 		if err == sql.ErrNoRows {
-			go checkLogError(c.Request.URL.String(), "1", tpl.ExecuteTemplate(c.Writer, "login.html", "BAD LOGIN!"))
+			go checkLogError(c.Request.URL.String(), "1", tpl.ExecuteTemplate(c.Writer, "login.gohtml", "BAD LOGIN!"))
 		} else {
 			if err != nil {
 				go logError(c.Request.URL.String(), "2", err)
-				go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "login.html", "ERROR LOGGING IN!"))
+				go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "login.gohtml", "ERROR LOGGING IN!"))
 			} else {
 				if checkPasswordHash(password, spassword) {
 					uid := getUUID()
@@ -236,12 +232,12 @@ func main() {
 
 					if err != nil {
 						go logError(c.Request.URL.String(), "4", err)
-						go checkLogError(c.Request.URL.String(), "5", tpl.ExecuteTemplate(c.Writer, "login.html", "ERROR LOGGING IN!"))
+						go checkLogError(c.Request.URL.String(), "5", tpl.ExecuteTemplate(c.Writer, "login.gohtml", "ERROR LOGGING IN!"))
 					} else {
 						c.Redirect(303, "/")
 					}
 				} else {
-					go checkLogError(c.Request.URL.String(), "7", tpl.ExecuteTemplate(c.Writer, "login.html", "BAD LOGIN!"))
+					go checkLogError(c.Request.URL.String(), "7", tpl.ExecuteTemplate(c.Writer, "login.gohtml", "BAD LOGIN!"))
 				}
 			}
 		}
