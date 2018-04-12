@@ -1,10 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"database/sql"
+	"errors"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"os"
 	"path"
@@ -15,7 +16,7 @@ import (
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
-	_ "github.com/mattn/go-sqlite3"
+	//_ "github.com/mattn/go-sqlite3"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -57,6 +58,7 @@ func main() {
 	r := gin.Default()
 	tpl = template.Must(template.New("").ParseGlob("www/*.gohtml"))
 	tpl = template.Must(tpl.ParseGlob("www/templates/*.gohtml"))
+
 	//Route for the static files in www/
 	r.Use(static.Serve("/www", static.LocalFile("www/", true)))
 
@@ -91,68 +93,153 @@ func main() {
 				if err != nil {
 					go checkLogError(c.Request.URL.String(), "2", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with uploaded picture, try again"))
 				} else {
-					company := c.PostForm("companyName")
+					buf := make([]byte, 512)
+					_, err = pfi.Read(buf)
 
-					if company == "" {
-						go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Company name cannot be empty"))
+					if err != nil {
+						go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with uploaded file, please try again"))
 					} else {
-						fi, err := os.Open(path.Join("www/lib/imgs/companyImages", path.Base(company)))
-						defer fi.Close()
+						filetype := http.DetectContentType(buf)
+						var extension string
 
-						if err != nil && err != os.ErrExist {
-							go checkLogError(c.Request.URL.String(), "4", os.Remove(path.Join("www/lib/imgs/companyImages", path.Base(company))))
-							go checkLogError(c.Request.URL.String(), "5", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "An error occured, please try again"))
+						switch filetype {
+						case "image/jpeg", "image/jpg":
+							extension = ".jpeg"
+
+						case "image/gif":
+							extension = ".gif"
+
+						case "image/png":
+							extension = ".png"
+
+						default:
+							err = errors.New("Invalid file type uploaded")
+						}
+
+						if err != nil {
+							go checkLogError(c.Request.URL.String(), "14", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Invalid file type for image file"))
 						} else {
-							if err != os.ErrExist {
-								writer := bufio.NewWriter(fi)
-							}
-							startDateString := c.PostForm("startDate")
-							if err != nil {
-								checkLogError(c.Request.URL.String(), "6", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "startTime name cannot be empty"))
+							company := c.PostForm("companyName")
+							if company == "" {
+								go checkLogError(c.Request.URL.String(), "15", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Company name cannot be empty"))
 							} else {
-								startDate, err := time.Parse("Unix", startDateString)
-								if err != nil {
-									checkLogError(c.Request.URL.String(), "7", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error parsing startTime"))
+								companyLogoLocation := path.Join("www/lib/imgs/companyImages", path.Base(company)+extension)
+								fi, err := os.OpenFile(companyLogoLocation, os.O_CREATE, 0666)
+								defer fi.Close()
+
+								if err != nil && err != os.ErrExist {
+									go checkLogError(c.Request.URL.String(), "4", os.Remove(companyLogoLocation))
+									go checkLogError(c.Request.URL.String(), "5", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "An error occured, please try again"))
 								} else {
-									endDateString := c.PostForm("endDate")
-									if endDateString == "" {
-										checkLogError(c.Request.URL.String(), "8", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "endTime cannot be empty"))
+									if err != os.ErrExist {
+										err = nil
+										var n int
+										fi.Write(buf[:512])
+										for {
+											n, err = pfi.Read(buf)
+											if err != nil && err != io.EOF {
+												go checkLogError(c.Request.URL.String(), "15", os.Remove(companyLogoLocation))
+												break
+											}
+
+											if n == 0 {
+												break
+											}
+
+											if _, err := fi.Write(buf[:n]); err != nil {
+												go checkLogError(c.Request.URL.String(), "16", os.Remove(companyLogoLocation))
+												break
+											}
+										}
 									} else {
-										endDate, err := time.Parse("Unix", endDateString)
-										if err != nil {
-											checkLogError(c.Request.URL.String(), "9", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error parsing endTime"))
+										err = nil
+									}
+
+									if err != nil {
+										go checkLogError(c.Request.URL.String(), "17", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "An error occured with the logo image, please try again"))
+									} else {
+										startDateString := c.PostForm("startDate")
+
+										if startDateString == "" {
+											checkLogError(c.Request.URL.String(), "6", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "startTime name cannot be empty"))
 										} else {
-											if startDate.After(endDate) {
-												checkLogError(c.Request.URL.String(), "10", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error startDate is after endDate"))
+											var startDate time.Time
+											startDate, err = time.Parse("2006-01-02", startDateString)
+
+											if err != nil {
+												logError(c.Request.URL.String(), "21", err)
+												checkLogError(c.Request.URL.String(), "7", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "An error occured, please try again"))
 											} else {
-												if startDate.After(time.Now().AddDate(1, 0, 0)) {
-													checkLogError(c.Request.URL.String(), "11", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error startDate is after a year from now"))
+												endDateString := c.PostForm("endDate")
+
+												if endDateString == "" {
+													checkLogError(c.Request.URL.String(), "8", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "End time cannot be empty"))
 												} else {
-													if endDate.After(time.Now().AddDate(1, 0, 0)) {
-														checkLogError(c.Request.URL.String(), "12", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error endDate is after a year from now"))
+													var endDate time.Time
+													endDate, err = time.Parse("2006-01-02", endDateString)
+
+													if err != nil {
+														logError(c.Request.URL.String(), "22", err)
+														checkLogError(c.Request.URL.String(), "9", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "An error occured, please try again"))
 													} else {
-														expirationOfPostingString := c.PostForm("expirationDate")
-														jobTitle := c.PostForm("position")
-														description := c.PostForm("description")
-														location := c.PostForm("location")
-														pay := c.PostForm("pay")
-														expirationOfPosting := c.PostForm("expirationDate")
-														contactInfo := c.PostForm("contactInfo")
-														typeOfProgram := c.PostForm("typeOfProgram")
+														if startDate.After(endDate) {
+															checkLogError(c.Request.URL.String(), "10", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error, start date is after end date"))
+														} else {
+															if startDate.After(time.Now().AddDate(1, 0, 0)) {
+																checkLogError(c.Request.URL.String(), "11", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error, the start date is after a year from now, it must be within a year from the current day"))
+															} else {
+																if endDate.After(time.Now().AddDate(1, 0, 0)) {
+																	checkLogError(c.Request.URL.String(), "12", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error, the end date is after a year from now, it must be within a year from the current day"))
+																} else {
+																	expirationOfPostingString := c.PostForm("expirationDate")
 
-														endDate := c.PostForm("dateEnd")
-														majors := correctMajors(c.PostForm("tags"))
+																	if expirationOfPostingString == "" {
+																		checkLogError(c.Request.URL.String(), "18", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Expiration time cannot be empty"))
+																	} else {
+																		var expirationDate time.Time
+																		expirationDate, err = time.Parse("2006-01-02", expirationOfPostingString)
+																		if err != nil {
+																			logError(c.Request.URL.String(), "21", err)
+																			checkLogError(c.Request.URL.String(), "22", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "An error occured, please try again"))
+																		} else {
+																			if expirationDate.After(time.Now().AddDate(1, 0, 0)) {
+																				checkLogError(c.Request.URL.String(), "20", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error, the expiration date is after a year from now, it must be within a year from the current day"))
+																			} else {
+																				if err != nil {
+																					checkLogError(c.Request.URL.String(), "19", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "An error occured, please try again"))
+																				} else {
+																					jobTitle := c.PostForm("position")
+																					description := c.PostForm("description")
+																					location := c.PostForm("location")
+																					pay := c.PostForm("pay")
+																					contactInfo := c.PostForm("contactInfo")
+																					typeOfProgram := c.PostForm("typeOfProgram")
 
-														_, err := db.Exec(
-															`INSERT INTO currentProgarms (
-																company, companyLogo, jobTitle, description, location, pay, expirationOfPosting,
-																contactInfo, majors, typeOfProgram, startDate, endDate
-															) values (
-																$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
-															)`, company, companyLogoLocation, jobTitle, description, location, pay, expirationOfPosting,
-															contactInfo, majors, typeOfProgram, startDate, endDate,
-														)
-														checkLogError(c.Request.URL.String(), "1", err)
+																					endDate := c.PostForm("dateEnd")
+																					majors := correctMajors(c.PostForm("tags"))
+
+																					_, err = db.Exec(
+																						`INSERT INTO currentProgarms (
+																						company, companyLogo, jobTitle, description, location, pay, expirationOfPosting,
+																						contactInfo, majors, typeOfProgram, startDate, endDate
+																					) values (
+																						$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
+																					)`, company, companyLogoLocation, jobTitle, description, location, pay, expirationDate,
+																						contactInfo, majors, typeOfProgram, startDate, endDate,
+																					)
+
+																					if err != nil {
+																						go checkLogError(c.Request.URL.String(), "13", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error adding that item, please try again"))
+																					} else {
+																						c.Redirect(303, "/admin/add_program")
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
 													}
 												}
 											}
