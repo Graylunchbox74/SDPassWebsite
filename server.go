@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -144,14 +145,17 @@ func main() {
 														endDate := c.PostForm("dateEnd")
 														majors := c.PostForm("tags")
 
+														correctMajors(majors)
+
 														_, err := db.Exec(
 															`INSERT INTO currentProgarms (
-						company, companyLogo, jobTitle, description, location, pay, expirationOfPosting,
-						contactInfo, majors, typeOfProgram, startDate, endDate
-					) values (
-						$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
-					)`, company, companyLogoLocation, jobTitle, description, location, pay, expirationOfPosting,
-															contactInfo, majors, typeOfProgram, startDate, endDate)
+																company, companyLogo, jobTitle, description, location, pay, expirationOfPosting,
+																contactInfo, majors, typeOfProgram, startDate, endDate
+															) values (
+																$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
+															)`, company, companyLogoLocation, jobTitle, description, location, pay, expirationOfPosting,
+															contactInfo, majors, typeOfProgram, startDate, endDate,
+														)
 														checkLogError(c.Request.URL.String(), "1", err)
 													}
 												}
@@ -244,6 +248,19 @@ func main() {
 	})
 
 	panic(r.Run(":6600"))
+}
+
+func correctMajors(majorsString string) string {
+	var correctMajorSlice []string
+	seenMajor := make(map[string]bool)
+	for _, major := range strings.Split(majorsString, ",") {
+		if _, exist := seenMajor[major]; !exist {
+			correctMajorSlice = append(correctMajorSlice, major)
+			seenMajor[major] = true
+		}
+	}
+	sort.Strings(correctMajorSlice)
+	return strings.Join(correctMajorSlice, ",")
 }
 
 func checkAuth(c *gin.Context, f func(*gin.Context)) {
