@@ -45,6 +45,7 @@ func init() {
 	var err error
 	_, ok := os.LookupEnv("NODB")
 	if !ok {
+		db, err = sql.Open("sqlite3", "./userDatabase.db?_busy_timeout=5000")
 		if err != nil {
 			panic(err)
 		}
