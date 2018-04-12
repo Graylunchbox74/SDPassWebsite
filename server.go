@@ -180,10 +180,17 @@ func main() {
 	r.POST("/search", func(c *gin.Context) {
 		checkAuth(c, func(c *gin.Context) {
 			//get data from the request
+			var conditionList []string
+			conditionList = append(conditionList, "SELECT * FROM currentPrograms WHERE")
 			payString := c.PostForm("pay")
 			pay, err := strconv.ParseFloat(payString, 32)
 			checkLogError(c.Request.URL.String(), "1", err)
-			if err == nil {
+			if err != nil {
+				checkLogError(c.Request.URL.String(), "2", err)
+			} else {
+				if pay != -1 {
+					conditionList = append(conditionList, "pay=$1", payString)
+				}
 			}
 
 		})
