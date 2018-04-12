@@ -45,7 +45,7 @@ func init() {
 	var err error
 	_, ok := os.LookupEnv("NODB")
 	if !ok {
-		db, err = sql.Open("sqlite3", "./userDatabase.db?_busy_timeout=5000")
+		db, err = sql.Open("sqlite3", "./programs.db?_busy_timeout=5000")
 		if err != nil {
 			panic(err)
 		}
@@ -60,6 +60,9 @@ func init() {
 }
 
 func main() {
+
+	go errorDrain()
+
 	r := gin.Default()
 	tpl = template.Must(template.New("").ParseGlob("www/*.gohtml"))
 	tpl = template.Must(tpl.ParseGlob("www/templates/*.gohtml"))
@@ -83,7 +86,7 @@ func main() {
 				rows, err := db.Query(`SELECT * FROM currentPrograms where typeOfProgram=$1 order by company`, prog)
 				if err != nil {
 					go logError(c.Request.URL.String(), "1", err)
-					go checkLogError(c.Request.URL.String(), "2", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with getting data, try again"))
+					tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with getting data, try again")
 					rows.Close()
 					return
 				}
@@ -107,7 +110,7 @@ func main() {
 
 					if err != nil {
 						go logError(c.Request.URL.String(), "3", err)
-						go checkLogError(c.Request.URL.String(), "4", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with getting data, try again"))
+						tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with getting data, try again")
 						rows.Close()
 						return
 					}
@@ -136,19 +139,19 @@ func main() {
 			companyLogo, err := c.FormFile("companyPhoto")
 
 			if err != nil {
-				go checkLogError(c.Request.URL.String(), "1", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with uploaded picture, try again"))
+				tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with uploaded picture, try again")
 			} else {
 				pfi, err := companyLogo.Open()
 				defer pfi.Close()
 
 				if err != nil {
-					go checkLogError(c.Request.URL.String(), "2", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with uploaded picture, try again"))
+					tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with uploaded picture, try again")
 				} else {
 					buf := make([]byte, 512)
 					_, err = pfi.Read(buf)
 
 					if err != nil {
-						go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with uploaded file, please try again"))
+						tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with uploaded file, please try again")
 					} else {
 						filetype := http.DetectContentType(buf)
 						var extension string
@@ -168,11 +171,11 @@ func main() {
 						}
 
 						if err != nil {
-							go checkLogError(c.Request.URL.String(), "14", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Invalid file type for image file"))
+							tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Invalid file type for image file")
 						} else {
 							company := c.PostForm("companyName")
 							if company == "" {
-								go checkLogError(c.Request.URL.String(), "15", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Company name cannot be empty"))
+								tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Company name cannot be empty")
 							} else {
 								companyLogoLocation := path.Join("www/lib/imgs/companyImages", path.Base(company)+extension)
 								fi, err := os.OpenFile(companyLogoLocation, os.O_CREATE, 0666)
@@ -180,7 +183,7 @@ func main() {
 
 								if err != nil && err != os.ErrExist {
 									go checkLogError(c.Request.URL.String(), "4", os.Remove(companyLogoLocation))
-									go checkLogError(c.Request.URL.String(), "5", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "An error occured, please try again"))
+									tpl.ExecuteTemplate(c.Writer, "error.gohtml", "An error occured, please try again")
 								} else {
 									if err != os.ErrExist {
 										err = nil
@@ -207,7 +210,7 @@ func main() {
 									}
 
 									if err != nil {
-										go checkLogError(c.Request.URL.String(), "17", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "An error occured with the logo image, please try again"))
+										tpl.ExecuteTemplate(c.Writer, "error.gohtml", "An error occured with the logo image, please try again")
 									} else {
 										startDateString := c.PostForm("startDate")
 
@@ -280,7 +283,7 @@ func main() {
 																					)
 
 																					if err != nil {
-																						go checkLogError(c.Request.URL.String(), "13", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error adding that item, please try again"))
+																						tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error adding that item, please try again")
 																					} else {
 																						c.Redirect(303, "/admin/add_program")
 																					}
@@ -326,7 +329,7 @@ func main() {
 				rows, err := db.Query(`SELECT * FROM currentPrograms where typeOfProgram=$1 AND (jobTitle like $2 OR description like $2 OR location like $2 OR contactInfo like $2) order by company`, prog, search)
 				if err != nil {
 					go logError(c.Request.URL.String(), "1", err)
-					go checkLogError(c.Request.URL.String(), "2", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with getting data, try again"))
+					tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with getting data, try again")
 					rows.Close()
 					return
 				}
@@ -350,7 +353,7 @@ func main() {
 
 					if err != nil {
 						go logError(c.Request.URL.String(), "3", err)
-						go checkLogError(c.Request.URL.String(), "4", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with getting data, try again"))
+						tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with getting data, try again")
 						rows.Close()
 						return
 					}
@@ -382,41 +385,37 @@ func main() {
 		var password, suser, spassword string
 		user := strings.ToLower(c.PostForm("username"))
 		var err error
-		attempts, maxattempts := 0, 10
-		for password, err = hashPassword(c.PostForm("password")); err == nil && attempts < maxattempts; {
-			password, err = hashPassword(c.PostForm("password"))
-			attempts++
-		}
-
+		var id string
+		password = c.PostForm("password")
 		err = db.QueryRow(`
-			SELECT username, password
+			SELECT username, password, uid
 			FROM USERS
 			WHERE username=$1`, user,
 		).Scan(
-			&suser, &spassword,
+			&suser, &spassword, &id,
 		)
 
 		if err == sql.ErrNoRows {
-			go checkLogError(c.Request.URL.String(), "1", tpl.ExecuteTemplate(c.Writer, "login.gohtml", "BAD LOGIN!"))
+			tpl.ExecuteTemplate(c.Writer, "login.gohtml", "BAD LOGIN!")
 		} else {
 			if err != nil {
 				go logError(c.Request.URL.String(), "2", err)
-				go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "login.gohtml", "ERROR LOGGING IN!"))
+				tpl.ExecuteTemplate(c.Writer, "login.gohtml", "ERROR LOGGING IN!")
 			} else {
 				if checkPasswordHash(password, spassword) {
 					uid := getUUID()
 					http.SetCookie(c.Writer, &http.Cookie{Name: "uuid", Value: uid})
 
-					_, err = db.Exec("INSERT INTO USER_SESSIONS (pid, uuid) VALUES ($1, $2)", user, uid)
-
+					_, err = db.Exec("INSERT INTO USER_SESSIONS (uid, uuid) VALUES ($1, $2)", id, uid)
 					if err != nil {
 						go logError(c.Request.URL.String(), "4", err)
-						go checkLogError(c.Request.URL.String(), "5", tpl.ExecuteTemplate(c.Writer, "login.gohtml", "ERROR LOGGING IN!"))
+						tpl.ExecuteTemplate(c.Writer, "login.gohtml", "ERROR LOGGING IN!")
 					} else {
 						c.Redirect(303, "/")
 					}
 				} else {
-					go checkLogError(c.Request.URL.String(), "7", tpl.ExecuteTemplate(c.Writer, "login.gohtml", "BAD LOGIN!"))
+					//tpl.ExecuteTemplate(c.Writer, "login.gohtml", "BAD LOGIN!")
+					tpl.ExecuteTemplate(c.Writer, "login.gohtml", "BAD LOGIN!")
 				}
 			}
 		}
@@ -447,9 +446,9 @@ func main() {
 
 		if err != nil {
 			go logError(c.Request.URL.String(), "1", err)
-			go checkLogError(c.Request.URL.String(), "2", tpl.ExecuteTemplate(c.Writer, "information.gohtml", nil))
+			tpl.ExecuteTemplate(c.Writer, "information.gohtml", nil)
 		} else {
-			go checkLogError(c.Request.URL.String(), "3", tpl.ExecuteTemplate(c.Writer, "information.gohtml", p))
+			tpl.ExecuteTemplate(c.Writer, "information.gohtml", p)
 		}
 	})
 
@@ -525,22 +524,22 @@ func hashPassword(password string) (string, error) {
 func isActiveSession(r *http.Request) bool {
 	funcLocation := "isActiveSession"
 	val, err := r.Cookie("uuid")
-
+	println(val.Value)
 	if err == nil {
-		var uid uint
+		var uid string
 		err = db.QueryRow(`
 			SELECT
 			uid
 			FROM USER_SESSIONS
 			WHERE uuid=$1`, val.Value,
 		).Scan(&uid)
-
 		if err != sql.ErrNoRows {
 			if err == nil {
 				return true
 			}
 			go logError(funcLocation, "1", err)
 		}
+		println("HERE1")
 	}
 	return false
 }
