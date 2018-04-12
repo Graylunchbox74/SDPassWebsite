@@ -93,9 +93,26 @@
 
         </form>
     </main>
-    <div id="footer">
-        {{template "footer"}}
-    </div>
+    <div class="container">
+        {{if .internships}} 
+        {{range .internships}}
+        <div class="row px-3">
+            <div class="col existingProgram">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{.company}}</h5>
+                        <h3 class="card-title">{{.jobTitle}}</h5>
+                        <a href="/programs/{{.id}}" class="btn btn-primary">Learn More</a>
+                        <a href="/admin/delete_program/{{.id}}" class="btn btn-primary">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}} 
+        {{end}}
+        <div id="footer">
+            {{template "footer"}}
+        </div>
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <!-- <script src="/www/lib/js/jquery-3.2.1.slim.min.js"></script> -->

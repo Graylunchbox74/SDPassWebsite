@@ -27,10 +27,15 @@ type locationalError struct {
 }
 
 type program struct {
-	id int
-	companyLogo, company, position, description, location, majors, jobTitle,
-	expirationOfPosting, contactInfo, typeOfProgram, startDate, endDate string
+	id, company, companyLogo, jobTitle, description, location, expirationOfPosting,
+	contactInfo, majors, typeOfProgram, startDate, endDate string
 	pay float32
+}
+
+type programs struct {
+	internships     []program
+	apprenticeships []program
+	certifications  []program
 }
 
 var db *sql.DB
@@ -70,9 +75,55 @@ func main() {
 		tpl.ExecuteTemplate(c.Writer, "about.gohtml", nil)
 	})
 
-	r.GET("/admin/add_program", func(c *gin.Context) {
-		checkAuth(c, func(c *gin.Context) {
-			tpl.ExecuteTemplate(c.Writer, "newProgram.gohtml", nil)
+	r.GET("/admin/add_program", func(g *gin.Context) {
+		checkAuth(g, func(c *gin.Context) {
+			var p program
+			var progs programs
+			for _, prog := range []string{"internship", "apprenticeship", "certification"} {
+				rows, err := db.Query(`SELECT * FROM currentPrograms where typeOfProgram=$1 order by company`, prog)
+				if err != nil {
+					go logError(c.Request.URL.String(), "1", err)
+					go checkLogError(c.Request.URL.String(), "2", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with getting data, try again"))
+					rows.Close()
+					return
+				}
+				for rows.Next() {
+					p = program{}
+					err = rows.Scan(
+						&p.id,
+						&p.company,
+						&p.companyLogo,
+						&p.jobTitle,
+						&p.description,
+						&p.location,
+						&p.pay,
+						&p.expirationOfPosting,
+						&p.contactInfo,
+						&p.majors,
+						&p.typeOfProgram,
+						&p.startDate,
+						&p.endDate,
+					)
+
+					if err != nil {
+						go logError(c.Request.URL.String(), "3", err)
+						go checkLogError(c.Request.URL.String(), "4", tpl.ExecuteTemplate(c.Writer, "error.gohtml", "Error with getting data, try again"))
+						rows.Close()
+						return
+					}
+
+					if prog == "internship" {
+						progs.internships = append(progs.internships, p)
+					} else if prog == "apprenticeship" {
+						progs.apprenticeships = append(progs.apprenticeships, p)
+					} else {
+						progs.certifications = append(progs.certifications, p)
+					}
+
+				}
+				rows.Close()
+			}
+			tpl.ExecuteTemplate(c.Writer, "newProgram.gohtml", progs)
 		})
 	})
 
@@ -219,7 +270,7 @@ func main() {
 																					majors := correctMajors(c.PostForm("tags"))
 
 																					_, err = db.Exec(
-																						`INSERT INTO currentProgarms (
+																						`INSERT INTO currentPrograms (
 																						company, companyLogo, jobTitle, description, location, pay, expirationOfPosting,
 																						contactInfo, majors, typeOfProgram, startDate, endDate
 																					) values (

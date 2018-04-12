@@ -24,11 +24,10 @@
 
 		<!-- This is an example card for internship output -->
 		<div class="card" style="width: 18rem;">
-			<img class="card-img-top" src="/www/lib/imgs/SDPaSSLogo.png" alt="Card image cap">
+			<img class="card-img-top" src="{{.companyLogo}}" alt="Company Logo">
 			<div class="card-body">
-				<h5 class="card-title">Internship Title</h5>
-				<p class="card-text">This is where the basic internship description will go</p>
-				<a href="#" class="btn btn-primary">Learn More</a>
+				<h5 class="card-title">{{.jobTitle}}</h5>
+				<a href="/programs/{{.id}}" class="btn btn-primary">Learn More</a>
 			</div>
 		</div>
 	</main>
